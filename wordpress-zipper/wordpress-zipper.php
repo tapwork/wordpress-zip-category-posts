@@ -2,7 +2,7 @@
 /*
 Plugin Name: Wordpress Post & Category ZIP
 Plugin URI: https://github.com/tapwork/wordpress-zip-category-posts
-Description: This wordpress plugin zips your posts and categories after publishing the post - even downloads external URLs and replaces the URL with the local URL
+Description: This wordpress plugin zips your posts, pages and categories after publishing the post or page - it even downloads external URLs and replaces the URL with the local URL
 Author: Christian Menschel
 Version: 0.1
 Author URI: http://twitter.com/tapworker
@@ -78,7 +78,7 @@ function tw_zip_content() {
 	$cats = wp_get_post_categories($post->ID);
 	foreach($cats as $c){
 		$cat 				= get_category( $c );
-		$id 				= $cat->term_id;
+		$id 				= $cat->cat_ID;
 		$cat_path 			= $base_zip_path."/category_".$id;
 		$url				= get_category_link($id);
 		$success 			= download_html_and_sources($url,$cat_path);
@@ -102,7 +102,7 @@ function download_html_and_sources($url,$folder)
 	
 	$zipfilename 		= "post_".$post->guid.".zip";
 	$htmlFilepath 		= $folder."/index.html";
-	$html 				= download_from_url($url); 
+	$html 				= file_get_contents($url); 
 	$url_to_replace     = array();
 		
 	libxml_use_internal_errors(true);
@@ -114,9 +114,7 @@ function download_html_and_sources($url,$folder)
 	
 	foreach ($dom->getElementsByTagName('a') as $item)
 	{
-		$url = replace_dom_if_real_url($item,'href');
-		if ($url)
-			array_push($url_to_replace,$url);
+		// we don't download an URL inside an a tag
 	}
 	
 	foreach ($dom->getElementsByTagName('link') as $item)
@@ -166,6 +164,8 @@ function replace_dom_if_real_url($item,$attr)
 	
 	return NULL;
 }
+
+
 
 
 
